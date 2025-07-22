@@ -1,15 +1,49 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+model User {
+  id                        String       @id @default(auto()) @map("_id") @db.ObjectId
+  username String @unique
+  email String @unique
+  password String
+  firstName String
+  lastName String
+  mobile String @unique
+  sessionReset SessionReset?
+  organizationUser OrganizationUser?
+  role String?
+  createdAt DateTime @default(now())
+}
+
+model Organization {
+  id                        String       @id @default(auto()) @map("_id") @db.ObjectId
+  organizationUser OrganizationUser[]
+  createdAt DateTime @default(now())
+}
+
+
+model OrganizationUser {
+  id                        String       @id @default(auto()) @map("_id") @db.ObjectId
+  typeUser String
+  user   User @relation(fields: [userId], references: [id])
+  userId String @unique @db.ObjectId
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String  @db.ObjectId
+}
+
+
+model SessionReset {
+  id                        String       @id @default(auto()) @map("_id") @db.ObjectId
+  OTP String
+  resetSession Boolean
+  expirationTime DateTime
+
+  user   User @relation(fields: [userId], references: [id])
+  userId String @unique @db.ObjectId
 }
